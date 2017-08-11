@@ -1,0 +1,300 @@
+'This Script shows the import feature and how to auto-fill a selection based on the given criteria
+
+'===For Importing a Text File (with multiselect feature on)====
+'Note: You can change the format from txt to any other feature depending on your objective
+
+Sub Import_Txt()
+
+    Dim sFileName As Variant
+    Dim LastRow As Long
+    Dim sFileNameCntr As Long
+    Dim qry As QueryTable
+    Dim strQryName As String
+    Dim msgString As String
+    
+    sFileName = Application.GetOpenFilename("Text Files (*.txt), *.txt" _
+    , , "Please select the files to import...", _
+    MultiSelect:=True)
+    If TypeName(sFileName) = "Boolean" Then
+        Exit Sub
+    Else
+        msgString = Join(sFileName, vbCr)
+    End If
+    'nxt_row = Range("A60000").End(xlUp).Offset(1, 0).Row
+    Application.ScreenUpdating = False
+    
+    Rows("2:" & Rows.Count).ClearContents 'clears contents before importing file
+    
+    For sFileNameCntr = LBound(sFileName) To UBound(sFileName)
+        sFileName(sFileNameCntr) = "TEXT;" & sFileName(sFileNameCntr)
+    Next sFileNameCntr
+    
+    For sFileNameCntr = LBound(sFileName) To UBound(sFileName)
+        With ActiveSheet
+            LastRow = Range("A65536").End(xlUp).Offset(1, 0).Row
+            'Append to previous data, if applicable
+            'If .Range("A" & Rows.Count).End(xlUp).Row = 1 Then
+                'LastRow = 1
+            'Else
+                'LastRow = .Range("A" & Rows.Count).End(xlUp).Row + 1
+            'End If
+            Set qry = _
+            .QueryTables.Add(Connection:= _
+            sFileName(sFileNameCntr), Destination:=Range("$A$" & LastRow))
+            With qry
+                .Name = "FileName"
+                .FieldNames = True
+                .RowNumbers = False
+                .FillAdjacentFormulas = False
+                .PreserveFormatting = True
+                .RefreshOnFileOpen = False
+                .RefreshStyle = xlInsertDeleteCells 'Use this to import cells normally
+                .RefreshStyle = xlOverwriteCells 'Use this feature to overwrite cells based on the selected Range
+                .SavePassword = False
+                .SaveData = True
+                .AdjustColumnWidth = False
+                .RefreshPeriod = 0
+                .TextFilePromptOnRefresh = False
+                .TextFilePlatform = 437
+                .TextFileStartRow = 1
+                .TextFileParseType = xlDelimited
+                .TextFileTextQualifier = xlTextQualifierDoubleQuote
+                .TextFileConsecutiveDelimiter = False
+                .TextFileTabDelimiter = True
+                .TextFileSemicolonDelimiter = False
+                .TextFileCommaDelimiter = True
+                .TextFileSpaceDelimiter = False
+                '.TextFileColumnDataTypes = Array(xlTextFormat, xlSkipColumn, xlGeneralFormat)
+                .TextFileTrailingMinusNumbers = True
+                .Refresh BackgroundQuery:=False
+                .WorkbookConnection.Delete
+            End With
+        End With
+    Next sFileNameCntr
+
+Call AutoFill
+
+Range("A2:D2") = Array("Title 1", "Title 2", "Title 3", "Title 4") 'And so on...
+'The Array would depend on how many columns is being added to the worksheet.
+'This means the Range would change as well
+
+MsgBox "Import Successful" 'To verify that the import feature worked out
+    
+End Sub
+
+
+'====Auto-Fill feature with criteria====
+'This feature is used to fill in any particular cells within a column based on whether or not the cells are blank (or numeric) for each given loop
+
+Sub AutoFill()
+
+'Dim Lastrow As Long
+'Dim ws As Worksheet
+
+'Set ws = Sheets("Sheet1")
+
+Application.ScreenUpdating = False
+
+'Lastrow = Cells.Find(What:="*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious).Row
+'Range("F3:F" & Lastrow).FillDown
+
+Dim c As Range
+Dim d As Range
+Dim ws As Worksheet
+Dim lRow As Long
+Dim lRow2 As Long
+     
+'lRow is used to see if any succeeding cell in Col F, using the offset from Col E, is empty (vbNullString) 
+'	and then copy whatever value that cell has into the following cell of the next row until the last filled row
+
+'lRow2 is used to see if any succeeding cell in Col A, using the offset from Col B, is numeric (IsNumeric) 
+'	and then copy whatever the cell is from Col A (assuming it's numeric) into the next row of Col A
+'	until the last filled row
+
+For Each ws In Sheets
+    With ws
+        lRow = .Range("E" & Rows.Count).End(xlUp).Row
+        lRow2 = .Range("B" & Rows.Count).End(xlUp).Row
+        For Each c In .Range("E3:E" & lRow)
+            If c.Value <> vbNullString Then
+                If c.Offset(0, 1) = vbNullString Then
+                    c.Offset(0, 1).Value = c.Offset(-1, 1).Value
+                End If
+            End If
+        Next c
+        
+        For Each d In .Range("B3:B" & lRow2)
+            If d.Value <> vbNullString Then
+                If IsNumeric(d.Offset(0, -1)) Then
+                    d.Offset(0, -1).Value = d.Offset(-1, -1).Value
+                End If
+            End If
+        Next d
+        
+    End With
+Next ws
+'=========
+'[Secondary Comments]
+
+'Lastrow = ws.Range("A" & Rows.Count).End(xlUp).Row
+'ws.Range("E" & Lastrow).Select
+'Range("E" & Lastrow).AutoFill Destination:=Range("E3:E1" & Cells(Rows.Count).End(xlUp).Row)
+'Sheets("Sheet1").Range("E" & Rows.Count).End(xlUp).Select
+
+'ws.Range("E" & Lastrow).AutoFill Destination:=ws.Range("E" & Cells(Rows.Count, 5).End(xlUp))
+'Range("B1:B2").AutoFill Destination:=Range("B1:B" & Cells(Rows.Count, 2).End(xlUp).Row)
+'=========
+End Sub
+
+
+
+
+'====Clearing Contents from a Specified Row to the end of the Worksheet====
+Sub Clear_Content()
+    'Dim answer As Integer
+    'answer = MsgBox("Are you sure you want to clear the contents?", vbYesNo + vbQuestion, "Clear Content")
+    'If answer = vbYes Then
+        Rows("2:" & Rows.Count).ClearContents
+    'Else
+        'Nothing Happens
+    'End If
+End Sub
+
+
+
+
+'====For Importing Text Files Within a Specified Folder====
+
+'This follows the same function as importing a single text. The main difference is that you get to select a specified folder to import from
+'	To be Introduced in Future update: Selecting sub-folders within a folder, multiple folders
+
+Sub Import_All_Files()
+     
+    Dim nxt_row As Long
+     
+     'Change Path
+    Dim strPath As String
+    Dim strExtension As String
+    Dim Folder As FileDialog
+    
+     'Stop Screen Flickering
+    Application.ScreenUpdating = False
+    
+    With Application.FileDialog(msoFileDialogFolderPicker)
+        .AllowMultiSelect = True
+        .InitialFileName = "C:\"
+        .Title = "Select folder to import"
+        If .Show = True Then
+            strPath = .SelectedItems(1) & "\"
+        Else
+            Exit Sub
+        End If
+    End With
+    
+    Rows("2:" & Rows.Count).ClearContents
+    
+    ChDir strPath
+     
+     'Change extension
+    strExtension = Dir(strPath & "*.txt")
+     
+    Do While strExtension <> ""
+         
+         'Adds File Name as title on next row
+        'Range("A65536").End(xlUp).Offset(1, 0).Value = strExtension
+         
+         'Sets Row Number for Data to Begin
+        nxt_row = Range("A65536").End(xlUp).Offset(1, 0).Row
+         
+        With ActiveSheet.QueryTables.Add(Connection:= _
+            "TEXT;" & strPath & strExtension, Destination:=Range("$A$" & nxt_row))
+            .Name = strExtension
+            .FieldNames = True
+            .RowNumbers = False
+            .FillAdjacentFormulas = False
+            .PreserveFormatting = True
+            .RefreshOnFileOpen = False
+            .RefreshStyle = xlInsertDeleteCells
+            .RefreshStyle = xlOverwriteCells
+            .SavePassword = False
+            .SaveData = True
+            .AdjustColumnWidth = False
+            .RefreshPeriod = 0
+            .TextFilePromptOnRefresh = False
+            .TextFilePlatform = 850
+            .TextFileStartRow = 1
+            .TextFileParseType = xlDelimited
+            .TextFileTextQualifier = xlTextQualifierDoubleQuote
+            .TextFileConsecutiveDelimiter = False
+            .TextFileTabDelimiter = True
+            .TextFileSemicolonDelimiter = True
+            .TextFileCommaDelimiter = True
+            .TextFileSpaceDelimiter = False
+            .TextFileOtherDelimiter = "="
+            .TextFileTrailingMinusNumbers = True
+            .Refresh BackgroundQuery:=False
+            .WorkbookConnection.Delete
+        End With
+        strExtension = Dir
+    Loop
+     
+Call AutoFill
+
+Range("A2:D2") = Array("Title A", "Title B", "Title C", "Title D") 'And so on...
+
+MsgBox "Import Successful"
+    Application.ScreenUpdating = True
+     
+End Sub
+
+
+'====AutoFill for Multiple Text Files====
+
+Sub AutoFill()
+
+Dim c As Range
+Dim d As Range
+Dim ws As Worksheet
+Dim lRow As Long
+Dim lRow2 As Long
+
+For Each ws In Sheets
+    With ws
+        lRow = .Range("E" & Rows.Count).End(xlUp).Row
+        lRow2 = .Range("B" & Rows.Count).End(xlUp).Row
+        For Each c In .Range("E3:E" & lRow)
+            If c.Value <> vbNullString Then
+                If c.Offset(0, 1) = vbNullString Then
+                    c.Offset(0, 1).Value = c.Offset(-1, 1).Value
+                End If
+            End If
+        Next c
+        
+        For Each d In .Range("B3:B" & lRow2)
+            If d.Value <> vbNullString Then
+                If IsNumeric(d.Offset(0, -1)) Then
+                    d.Offset(0, -1).Value = d.Offset(-1, -1).Value
+                End If
+            End If
+        Next d
+        
+    End With
+Next ws
+
+
+'Dim Lastrow As Long
+'Dim ws As Worksheet
+'Set ws = Sheets("Sheet1")
+
+'Application.ScreenUpdating = False
+
+'Lastrow = ws.Range("A" & Rows.Count).End(xlUp).Row
+'Lastrow = Cells.Find(What:="*", SearchOrder:=xlByRows, SearchDirection:=xlPrevious).Row
+'Range("E3:E" & Lastrow).FillDown
+
+End Sub
+
+
+
+
+

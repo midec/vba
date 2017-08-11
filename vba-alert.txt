@@ -1,0 +1,130 @@
+'This file shows how to create conditions to highlight certain rows for date conditions, create alerts and use Outlook email function
+
+
+'====For making Dynamic actions on Workbook====
+Private Sub Workbook_Open()
+Call Sub_Routine
+End Sub
+
+
+
+'====For Highlighting Feature====
+
+Sub Coloring()
+   Dim lngLastRow As Long, lngRow As Long
+   Dim l, m As Integer
+   Dim strColumn As String
+   Dim strColumn2 As String
+   Dim ws As Worksheet
+   
+   Dim firstdt, secondt As Date
+   
+   
+   strColumn = "A" 'Column used for date value within a 'For' loop
+   strColumn2 = "B" 'Column used for date frequency condition
+
+   Dim vResult
+   Dim vResult2
+
+   firstdt = DateValue(Now)
+   
+   With ActiveSheet
+      lngLastRow = .Cells(.Rows.Count, strColumn).End(xlUp).Row
+      
+      For lngRow = 2 To lngLastRow
+         secondt = DateValue(Worksheets("Sheet1").Cells(lngRow, strColumn).Value)
+         If Worksheets("Sheet1").Cells(lngRow, strColumn2).Value = "Annual" Then
+	    'Integer is used as frequency indicator for year (0, 365, etc.)
+            If IsDate(.Cells(lngRow, strColumn).Value) And DateDiff("d", secondt, firstdt) >= 365 Then
+            .Rows(lngRow).Interior.ColorIndex = 1
+            Else: .Rows(lngRow).Interior.ColorIndex = xlNone
+            End If
+         ElseIf Worksheets("Sheet1").Cells(lngRow, strColumn2).Value = "Biannual" Then
+            If IsDate(.Cells(lngRow, strColumn).Value) And DateDiff("d", secondt, firstdt) >= 182.5 Then
+	    'Integer is used as frequency indicator for year (0, 365, etc.)
+            .Rows(lngRow).Interior.ColorIndex = 2
+            Else: .Rows(lngRow).Interior.ColorIndex = xlNone
+            End If
+         Else: .Rows(lngRow).Interior.ColorIndex = xlNone
+         Exit Sub
+         End If
+      Next lngRow
+   
+      For lngRow = 2 To lngLastRow
+        If .Rows(lngRow).Interior.ColorIndex = 1 Then
+            vResult = 1 + vResult
+        ElseIf .Rows(lngRow).Interior.ColorIndex = 2 Then
+            vResult2 = 1 + vResult2
+        End If
+      Next lngRow
+      
+   End With
+
+
+      MsgBox "Number of Annual Records: " & vResult & vbCrLf & vbCrLf & _
+      "Number of Biannual Records: " & vResult2, vbOKOnly, "Message Box Title"
+
+End Sub
+
+
+===For indicating an alert and using the Email feature to send and attach files====
+
+Sub Emailing()
+    Dim x As Integer
+    Dim lLastRow, lRow As Long
+    Dim emailtext As String
+    Dim OutApp As Object
+    Dim OutMail As Object
+    Dim strbody, strbody2 As String
+    
+    Dim strColumn, strColumn2 As String
+    Dim firstdt, secondt As Date
+    
+    strColumn = "A"
+    strColumn2 = "B"
+    firstdt = DateValue(Now)
+    
+    
+    Set OutApp = CreateObject("Outlook.Application")
+    Set OutMail = OutApp.CreateItem(0)
+    
+    With ActiveSheet
+    lLastRow = .Cells(.Rows.Count, strColumn).End(xlUp).Row
+    
+    For lRow = 2 To lLastRow
+        secondt = DateValue(Worksheets("Sheet1").Cells(lRow, strColumn).Value)
+
+    If Worksheets("Sheet1").Cells(lRow, strColumn2).Value = "Annual" Then
+	'Integer is used as frequency indicator for year (0, 365, etc.)
+        If IsDate(.Cells(lRow, strColumn).Value) And DateDiff("d", secondt, firstdt) >= 365 Then
+            strbody = "Alert One"
+        End If
+    ElseIf Worksheets("Sheet1").Cells(lRow, strColumn2).Value = "Biannual" Then
+	'Integer is used as frequency indicator for year (0, 365, etc.)
+        If IsDate(.Cells(lRow, strColumn).Value) And DateDiff("d", secondt, firstdt) >= 182.5 Then
+            strbody2 = "Alert Two"
+        End If
+    On Error Resume Next
+    
+    With OutMail
+        .To = ""
+        .CC = ""
+        .BCC = ""
+        .Subject = "Test"
+        .Body = strbody & vbNewLine & vbNewLine & strbody2
+        'You can add a file like this
+        .Attachments.Add ("C:\Directory\Folder\Folder\File")
+        .Send   'or use .Display
+    End With
+    On Error GoTo 0
+
+    Set OutMail = Nothing
+    Set OutApp = Nothing
+
+    End If
+     
+    Next
+    End With
+
+End Sub
+

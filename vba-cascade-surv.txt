@@ -1,0 +1,419 @@
+'This file shows how to connect between User forms, and deleting the last filled row with any filled text values of selected columns
+
+
+'====From Workbook====
+Sub OpenDemForm()
+DemForm.Show
+DemForm.TextBox1.SetFocus
+
+End Sub
+
+Private Sub ChangeDem_Click()
+Call OpenDemForm
+End Sub
+
+
+Private Sub BeginEntry_Click()
+
+QForm.Show
+QForm.QCombo.SetFocus
+
+End Sub
+
+
+Private Sub CommandButton1_Click()
+
+If MsgBox("Are you sure you want to send this?", vbYesNo, "Ready to Send?") = vbNo Then
+Exit Sub
+Else
+ThisWorkbook.Save
+Call SendWorkBook
+End If
+End Sub
+
+Private Sub DevButton_Click()
+IntroForm.Show
+End Sub
+
+
+
+Private Sub Worksheet_Activate()
+
+End Sub
+
+Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
+
+Dim Rng1 As Range
+Dim Rng2 As Range
+Dim Rng3 As Range
+Dim Rng4 As Range
+Dim Rng5 As Range
+Dim Rng6 As Range
+Dim Rng7 As Range
+
+
+
+Set Rng1 = Range("A8:A" & Rows.Count)
+Set Rng2 = Range("B8:B" & Rows.Count)
+Set Rng3 = Range("D8:D" & Rows.Count)
+Set Rng4 = Range("F8:F" & Rows.Count)
+Set Rng5 = Range("G8:G" & Rows.Count)
+Set Rng6 = Range("H8:H" & Rows.Count)
+Set Rng7 = Range("I8:I" & Rows.Count)
+
+Set Rng1 = Application.Intersect(Rng1, Target)
+Set Rng2 = Application.Intersect(Rng2, Target)
+Set Rng3 = Application.Intersect(Rng3, Target)
+Set Rng4 = Application.Intersect(Rng4, Target)
+Set Rng5 = Application.Intersect(Rng5, Target)
+Set Rng6 = Application.Intersect(Rng6, Target)
+Set Rng7 = Application.Intersect(Rng7, Target)
+
+End Sub
+
+
+
+
+
+'====From IntroForm====
+
+Private Sub CloseButton_Click()
+IntroForm.Hide
+'DemForm.Show
+
+End Sub
+
+
+
+'====From DemForm, with fill-in at specific row (Column 1, Row 4) and offsets after====
+Private Sub CommandButton1_Click()
+
+Range("A4").Activate
+
+If TextBox1.Value = "" Or TextBox2.Value = "" Or TextBox3.Value = "" _
+Or TextBox4.Value = "" Or TextBox5.Value = "" Then
+    If MsgBox("Entry is incomplete. Do you want to continue?", vbQuestion + vbYesNo) <> vbYes Then
+    Exit Sub
+    End If
+    
+End If
+
+'Call StartEmpty
+
+ActiveCell.Offset(0, 0) = TextBox1.Value
+ActiveCell.Offset(0, 1) = TextBox2.Value
+ActiveCell.Offset(0, 2) = TextBox3.Value
+ActiveCell.Offset(0, 3) = TextBox4.Value
+ActiveCell.Offset(0, 4) = TextBox5.Value
+
+'ActiveCell.Offset(1, 0).Select
+Range("A3").Select 'Select the new cell for Excel
+
+Unload DemForm
+
+QForm.Show
+
+End Sub
+'Saved Default to "True" in Properties so that if someone presses Enter, then it is treated as Clicking "Enter"
+Sub StartEmpty()
+'With Sheets("Sheet1")
+ '
+  '   NextRow = .Range("A" & Rows.Count).End(xlUp).Row + 1
+ '
+  '   .Range("B" & NextRow) = TextBox1.Value
+'End With
+If IsEmpty(Range("A4").Value) = True Then
+    Sheets("Sheet1").Application.Goto Reference:="R4C1"
+End If
+
+End Sub
+
+
+Sub ResetForm()
+
+TextBox1.Value = ""
+TextBox2.Value = ""
+TextBox3.Value = ""
+TextBox4.Value = ""
+TextBox5.Value = ""
+TextBox6.Value = ""
+DemForm.TextBox1.SetFocus
+
+End Sub
+
+
+Private Sub CommandButton2_Click()
+'Call ResetForm
+Unload DemForm
+QForm.Hide
+End Sub
+
+
+Private Sub CommandButton3_Click()
+Calendar1.Show
+End Sub
+
+
+
+
+Private Sub UserForm_Initialize()
+
+ TextBox1.Text = Worksheets("Survey").Range("A4")
+ TextBox2.Text = Worksheets("Survey").Range("B4")
+ TextBox3.Text = Worksheets("Survey").Range("C4")
+ TextBox4.Text = Worksheets("Survey").Range("D4")
+ TextBox5.Text = Worksheets("Survey").Range("E4")
+ TextBox6.Text = Worksheets("Survey").Range("F4")
+ 
+End Sub
+
+
+'=====From QForm (Starting next Row Upward with Empty Cell Values)====
+
+Private Sub QForm_Initialize()
+
+'Sheets("Q").Range("A2:A14") = QSECombo.Value
+
+End Sub
+
+
+Private Sub CommandButton2_Click()
+
+Dim lastRow As Long, ws As Worksheet
+Dim LR, i As Long
+Dim row As Range
+
+Set ws = Sheets("Sheet1")
+
+'    Dim sourceCol As Integer, rowCount As Integer, currentRow As Integer
+ '   Dim currentRowValue As String
+
+  '  sourceCol = 6   'column F has a value of 6
+   ' rowCount = Cells(Rows.Count, sourceCol).End(xlUp).Row
+
+    ''for every row, find the first blank cell and select it
+    'For currentRow = 1 To rowCount
+     '   currentRowValue = Cells(currentRow, sourceCol).Value
+      '  If IsEmpty(currentRowValue) Or currentRowValue = "" Then
+       '     Cells(currentRow, sourceCol).Select
+        '    Exit For 'This is missing...
+        'End If
+If QCombo.Value = "" Then
+    MsgBox "Please select a Q", vbOKOnly, "Error"
+    Exit Sub
+    'If MsgBox("Entry is incomplete. Do you want to continue?", vbQuestion + vbYesNo) <> vbYes Then
+    'Exit Sub
+    'End If
+End If
+
+'lastRow = ws.Range("A" & Rows.Count).End(xlUp).row + 1 'Finds the last blank row
+LR = Columns("A:I").Find(What:="*", SearchDirection:=xlPrevious, SearchOrder:=xlByRows).row 'Also finds the last blank row
+
+For i = 9 To LR Step 1
+
+    Set row = ws.Rows(i)
+    If WorksheetFunction.CountA(row) = 0 Then
+        MsgBox "Entry Row " & i & " is empty!", vbOKOnly, "Warning"
+    End If
+Next i
+    ws.Range("A" & LR + 1).Select 'Makes last blank row active cell
+    ws.Range("A" & LR + 1).Value = QCombo.Value 'Adds the CombBox1 Value into Col A & Last Blank Row
+    'ws.Range("A" & LR + 1).Offset(0, 1).Value = QCombo.Text 'Adds the ComboBox1 into next cell to the right of TextBox3 data.
+
+ActiveCell.Offset(0, 1).Select 'Then offsets the cell to the next column, in same row
+
+Unload QForm 'Closes QForm and removes memory of the form
+ToolForm.Show
+
+End Sub
+
+'To use to cancel form and close box "CommandButton3" or "CancelButton"
+
+Private Sub CommandButton3_Click()
+
+'Clicking Cancel will enable this function to blank the Q cell box
+Dim lastRow As Long, lastRow2 As Long, ws As Worksheet
+Set ws = Sheets("Survey")
+
+lastRow = ws.Range("B" & Rows.Count).End(xlUp).row + 1
+lastRow2 = ws.Range("C" & Rows.Count).End(xlUp).row + 1
+
+If IsEmpty(lastRow) = True And IsEmpty(lastRow2) = True Then
+    ws.Range("A" & Rows.Count).End(xlUp).Delete
+End If
+
+QForm.Hide
+QForm.ComboBox1.SetFocus
+End Sub
+
+
+
+'====From Tool Form====
+
+Private Sub CommandButton1_Click()
+
+If TextBox1.Value = "" Or TextBox2.Value = "" Then
+    If MsgBox("Entry is incomplete. Do you want to continue?", vbQuestion + vbYesNo) <> vbYes Then
+    Exit Sub
+    End If
+End If
+
+'Call StartEmpty
+
+ActiveCell.Offset(0, 0) = TextBox1.Value
+ActiveCell.Offset(0, 1) = TextBox2.Value
+
+ActiveCell.Offset(0, 2).Select
+
+Unload ToolForm
+PhaseForm.Show
+
+End Sub
+
+
+'====From PhaseForm====
+Private Sub CommandButton1_Click()
+
+If OptionButton1.Value = True Then
+    ActiveCell.Value = OptionButton1.Caption
+ElseIf OptionButton2.Value = True Then
+    ActiveCell.Value = OptionButton2.Caption
+ElseIf OptionButton3.Value = True Then
+    ActiveCell.Value = OptionButton3.Caption
+ElseIf OptionButton4.Value = True Then
+    ActiveCell.Value = OptionButton4.Caption
+End If
+
+
+If OptionButton5.Value = True Then
+    ActiveCell.Offset(0, 1).Value = OptionButton5.Caption
+ElseIf OptionButton6.Value = True Then
+    ActiveCell.Offset(0, 1).Value = OptionButton6.Caption
+ElseIf OptionButton7.Value = True Then
+    ActiveCell.Offset(0, 1).Value = OptionButton7.Caption
+ElseIf OptionButton8.Value = True Then
+    ActiveCell.Offset(0, 1).Value = OptionButton8.Caption
+End If
+    
+    
+ActiveCell.Offset(0, 2).Select
+
+'Call StartEmpty
+
+Unload PhaseForm
+SupportForm.Show
+
+End Sub
+
+
+'====From SupportForm====
+
+
+Private Sub CommandButton1_Click()
+If TextBox1.Value = "" Then
+    If MsgBox("Entry is incomplete. Do you want to continue?", vbQuestion + vbYesNo) <> vbYes Then
+    Exit Sub
+    End If
+End If
+
+'On Error Resume Next
+ActiveCell.Offset(0, 0) = TextBox1.Value
+
+'NextFree = Range("A9" & Rows.Count).Cells.SpecialCells(xlCellTypeBlanks).Row
+'Range("A" & NextFree).Select
+
+ActiveCell.Offset(0, 1).Select
+
+Unload SupportForm
+CDForm.Show
+
+End Sub
+
+'====From CD Form====
+Private Sub CommandButton1_Click()
+
+If TextBox1.Value = "" Or TextBox2.Value = "" Or TextBox3.Value = "" Then
+    If MsgBox("Entry is incomplete. Do you want to continue?", vbQuestion + vbYesNo) <> vbYes Then
+    Exit Sub
+    End If
+End If
+
+ActiveCell.Offset(0, 0) = TextBox1.Value
+ActiveCell.Offset(0, 1) = TextBox2.Value
+ActiveCell.Offset(0, 2) = TextBox3.Value
+
+Unload CDForm
+RetryForm.Show
+
+End Sub
+
+
+'====From RetryForm====
+
+Private Sub CommandButton1_Click() 'Treated as a Yes Button
+
+Unload RetryForm
+QForm.Show
+
+End Sub
+
+Private Sub CommandButton2_Click() 'Treated as a No Button
+
+'ActiveCell.Offset(1, -5).Select
+Unload RetryForm
+
+End Sub
+
+
+'====Clearing Last Row====
+
+Private Sub ClearRow_Click()
+
+Dim ws As Worksheet
+
+Dim i As Long
+Dim LR As Long
+Dim Rng As Range
+
+
+Set ws = Sheets("Sheet1")
+
+LR = Columns("A:J").Find(What:="*", SearchDirection:=xlPrevious, SearchOrder:=xlByRows).row
+
+
+For i = LR To 8 Step (-1)
+    If IsEmpty(Range("A7").Value) = False Then 'Set This Value to be a Header Row with Values filled that you won't delete
+        Rows(LR).Delete
+    Else
+        MsgBox "No data entry found!", vbOKOnly, "Error"
+End If
+
+Next i
+
+'ActiveSheet.Cells.End(xlDown).EntireRow.Delete
+
+End Sub
+
+'====Sending Workbook via Outlook====
+
+Sub SendWorkBook()
+
+Dim OutlookApp As Object
+Dim OutlookMail As Object
+Set OutlookApp = CreateObject("Outlook.Application")
+Set OutlookMail = OutlookApp.CreateItem(0)
+On Error Resume Next
+With OutlookMail
+    .To = ""
+    .CC = ""
+    .BCC = ""
+    .Subject = ""
+    .Body = ""
+    .Attachments.Add (Application.ActiveWorkbook.FullName)
+    .Display
+End With
+Set OutlookMail = Nothing
+Set OutlookApp = Nothing
+End Sub
+
+
