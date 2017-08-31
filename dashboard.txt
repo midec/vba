@@ -1,0 +1,211 @@
+
+'===Importing Data from another Excel Workboook===
+
+Sub Import_Data()
+
+    Dim sImportFile As String, sFile As String
+    Dim sThisBk As Workbook
+    Dim vfilename As Variant
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+    Set sThisBk = ActiveWorkbook
+    sImportFile = Application.GetOpenFilename( _
+    FileFilter:="Microsoft Excel Workbooks, *.xls; *.xlsx; &.xlsm", Title:="Open Workbook")
+    If sImportFile = "False" Then
+        MsgBox "No File Selected!"
+        Exit Sub
+         
+    Else
+        sThisBk.Sheets("Data").Delete
+        
+        vfilename = Split(sImportFile, "\")
+        sFile = vfilename(UBound(vfilename))
+        Application.Workbooks.Open Filename:=sImportFile
+         
+        Set wbBk = Workbooks(sFile)
+        With wbBk
+            If SheetExists("Sheet1") Then
+                Set wsSht = .Sheets("Sheet1")
+                wsSht.Copy after:=sThisBk.Sheets("Dashboard")
+            Else
+                MsgBox "There is no sheet with name :Sheet1 in:" & vbCr & .Name
+            End If
+            wbBk.Close SaveChanges:=False
+        End With
+    End If
+    
+    ActiveSheet.Name = "Data"
+    sThisBk.Sheets("Dashboard").Activate
+    
+    Call Update_Cht
+    Call Update_Val
+    
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+    
+    MsgBox "Data Successfully Imported", vbOKOnly, Completed
+    
+End Sub
+Private Function SheetExists(sWSName As String) As Boolean
+    Dim ws As Worksheet
+    On Error Resume Next
+    Set ws = Worksheets(sWSName)
+    If Not ws Is Nothing Then SheetExists = True
+End Function
+
+Sub Update_Val()
+
+Dim lngRowSource As Long, lngRowDestin As Long
+Dim ws As Worksheet
+
+     
+    lngRowSource = 2
+    lngRowDestin = 2
+     
+    Sheets("Dashboard").Range("A2").Value = _
+    Sheets("Data").Range("A2").Value
+
+    Sheets("Dashboard").Range("B2").Value = _
+    Sheets("Data").Range("B2").Value
+
+    Sheets("Dashboard").Range("D2").Value = _
+    Sheets("Data").Range("D2").Value
+    
+    Sheets("Dashboard").Range("D3").Value = _
+    Sheets("Data").Range("D3").Value
+
+End Sub
+
+Sub Create_Cht_Beta()
+'
+' Create_Cht_Beta Macro
+'
+
+'
+    Sheets("Dashboard").Select
+    ActiveSheet.Shapes.AddChart2(332, xlLineMarkers).Select
+    ActiveChart.SeriesCollection.NewSeries
+    ActiveChart.FullSeriesCollection(1).Name = "=Data!$C$1"
+    ActiveChart.FullSeriesCollection(1).Values = "=Data!$C$2:$C"
+    ActiveChart.FullSeriesCollection(1).XValues = "=Data!$B$2:$B$"
+    ActiveChart.SeriesCollection.NewSeries
+    ActiveChart.FullSeriesCollection(2).Name = "=Data!$D$1"
+    ActiveChart.FullSeriesCollection(2).Values = "=Data!$D$2:$D$"
+    ActiveChart.FullSeriesCollection(2).XValues = "=Data!$B$2:$B$"
+    ActiveChart.SeriesCollection.NewSeries
+    ActiveChart.FullSeriesCollection(3).Name = "=Data!$E$1"
+    ActiveChart.FullSeriesCollection(3).Values = "=Data!$E$2:$E$"
+    ActiveChart.PlotArea.Select
+    ActiveChart.ChartArea.Select
+    ActiveChart.SetElement (msoElementPrimaryCategoryAxisTitleAdjacentToAxis)
+    ActiveChart.SetElement (msoElementPrimaryValueAxisTitleAdjacentToAxis)
+    ActiveChart.Axes(xlValue).AxisTitle.Select
+    ActiveChart.Axes(xlValue, xlPrimary).AxisTitle.Text = "Degrees"
+    Selection.Format.TextFrame2.TextRange.Characters.Text = "Degrees"
+    With Selection.Format.TextFrame2.TextRange.Characters(1, 17).ParagraphFormat
+        .TextDirection = msoTextDirectionLeftToRight
+        .Alignment = msoAlignCenter
+    End With
+    With Selection.Format.TextFrame2.TextRange.Characters(1, 7).Font
+        .BaselineOffset = 0
+        .Bold = msoFalse
+        .NameComplexScript = "+mn-cs"
+        .NameFarEast = "+mn-ea"
+        .Fill.Visible = msoTrue
+        .Fill.ForeColor.RGB = RGB(89, 89, 89)
+        .Fill.Transparency = 0
+        .Fill.Solid
+        .Size = 10
+        .Italic = msoFalse
+        .Kerning = 12
+        .Name = "+mn-lt"
+        .UnderlineStyle = msoNoUnderline
+        .Strike = msoNoStrike
+    End With
+    With Selection.Format.TextFrame2.TextRange.Characters(8, 10).Font
+        .BaselineOffset = 0
+        .Bold = msoFalse
+        .NameComplexScript = "+mn-cs"
+        .NameFarEast = "+mn-ea"
+        .Fill.Visible = msoTrue
+        .Fill.ForeColor.RGB = RGB(89, 89, 89)
+        .Fill.Transparency = 0
+        .Fill.Solid
+        .Size = 10
+        .Italic = msoFalse
+        .Kerning = 12
+        .Name = "+mn-lt"
+        .UnderlineStyle = msoNoUnderline
+        .Strike = msoNoStrike
+    End With
+    ActiveChart.Axes(xlCategory).AxisTitle.Select
+    ActiveChart.Axes(xlCategory, xlPrimary).AxisTitle.Text = "Date"
+    Selection.Format.TextFrame2.TextRange.Characters.Text = "Date"
+    With Selection.Format.TextFrame2.TextRange.Characters(1, 9).ParagraphFormat
+        .TextDirection = msoTextDirectionLeftToRight
+        .Alignment = msoAlignCenter
+    End With
+    With Selection.Format.TextFrame2.TextRange.Characters(1, 9).Font
+        .BaselineOffset = 0
+        .Bold = msoFalse
+        .NameComplexScript = "+mn-cs"
+        .NameFarEast = "+mn-ea"
+        .Fill.Visible = msoTrue
+        .Fill.ForeColor.RGB = RGB(89, 89, 89)
+        .Fill.Transparency = 0
+        .Fill.Solid
+        .Size = 10
+        .Italic = msoFalse
+        .Kerning = 12
+        .Name = "+mn-lt"
+        .UnderlineStyle = msoNoUnderline
+        .Strike = msoNoStrike
+    End With
+    ActiveChart.ChartArea.Select
+    ActiveChart.SetElement (msoElementChartTitleAboveChart)
+    ActiveChart.ChartTitle.Text = "Example Title"
+    Selection.Format.TextFrame2.TextRange.Characters.Text = "Example Title"
+    With Selection.Format.TextFrame2.TextRange.Characters(1, 18).ParagraphFormat
+        .TextDirection = msoTextDirectionLeftToRight
+        .Alignment = msoAlignCenter
+    End With
+    With Selection.Format.TextFrame2.TextRange.Characters(1, 11).Font
+        .BaselineOffset = 0
+        .Bold = msoFalse
+        .NameComplexScript = "+mn-cs"
+        .NameFarEast = "+mn-ea"
+        .Fill.Visible = msoTrue
+        .Fill.ForeColor.RGB = RGB(89, 89, 89)
+        .Fill.Transparency = 0
+        .Fill.Solid
+        .Size = 14
+        .Italic = msoFalse
+        .Kerning = 12
+        .Name = "+mn-lt"
+        .UnderlineStyle = msoNoUnderline
+        .Spacing = 0
+        .Strike = msoNoStrike
+    End With
+    With Selection.Format.TextFrame2.TextRange.Characters(12, 7).Font
+        .BaselineOffset = 0
+        .Bold = msoFalse
+        .NameComplexScript = "+mn-cs"
+        .NameFarEast = "+mn-ea"
+        .Fill.Visible = msoTrue
+        .Fill.ForeColor.RGB = RGB(89, 89, 89)
+        .Fill.Transparency = 0
+        .Fill.Solid
+        .Size = 14
+        .Italic = msoFalse
+        .Kerning = 12
+        .Name = "+mn-lt"
+        .UnderlineStyle = msoNoUnderline
+        .Spacing = 0
+        .Strike = msoNoStrike
+    End With
+    ActiveChart.ChartArea.Select
+    ActiveChart.Axes(xlValue).Select
+    ActiveWindow.ScrollRow = 2
+End Sub
+
+
