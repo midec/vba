@@ -113,7 +113,8 @@ Dim lRow2 As Long
 
 For Each ws In Sheets
     With ws
-        lRow = .Range("E" & Rows.Count).End(xlUp).Row
+
+lRow = .Range("E" & Rows.Count).End(xlUp).Row
         lRow2 = .Range("B" & Rows.Count).End(xlUp).Row
         For Each c In .Range("E3:E" & lRow)
             If c.Value <> vbNullString Then
@@ -146,7 +147,22 @@ Next ws
 '=========
 End Sub
 
+=======Removing unwanted headers from imported txt file============
+Sub DeleteHeaders()
 
+With ActiveSheet
+    .AutoFilterMode = False
+    With Range("F2", Range("F" & Rows.Count).End(xlUp))
+        .AutoFilter 1, "*Name of Header*"
+        On Error Resume Next
+        .Offset(1).SpecialCells(12).EntireRow.Delete
+        .SpecialCells(xlCellTypeBlanks).Delete Shift:=xlUp
+    End With
+    .AutoFilterMode = False
+End With
+
+
+End Sub
 
 
 '====Clearing Contents from a Specified Row to the end of the Worksheet====
