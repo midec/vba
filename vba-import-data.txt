@@ -147,7 +147,7 @@ Next ws
 '=========
 End Sub
 
-=======Removing unwanted headers from imported txt file============
+'=======Removing unwanted headers from imported txt file============
 Sub DeleteHeaders()
 
 With ActiveSheet
@@ -164,7 +164,10 @@ End With
 
 End Sub
 
-
+'=============
+ 
+ 
+ 
 '====Clearing Contents from a Specified Row to the end of the Worksheet====
 Sub Clear_Content()
     'Dim answer As Integer
