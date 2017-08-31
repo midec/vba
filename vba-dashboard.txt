@@ -53,6 +53,36 @@ Private Function SheetExists(sWSName As String) As Boolean
     If Not ws Is Nothing Then SheetExists = True
 End Function
 
+
+Sub Update_Cht()
+
+Dim xValRange As Range
+Dim Lastrow As Long
+
+With Worksheets("Data")
+    Lastrow = .Range("A" & Rows.Count).End(xlUp).Row
+    Set xValRange = .Range("B2:B" & Lastrow)
+End With
+
+    ActiveSheet.ChartObjects("Chart 3").Activate
+    Application.CutCopyMode = False
+    Application.CutCopyMode = False
+    Application.CutCopyMode = False
+    Application.CutCopyMode = False
+    Application.CutCopyMode = False
+    Application.CutCopyMode = False
+    Application.CutCopyMode = False
+    Application.CutCopyMode = False
+    ActiveChart.FullSeriesCollection(1).Name = "=Data!$C$1"
+    ActiveChart.FullSeriesCollection(1).Values = xValRange.Offset(0, 1) 'C
+    ActiveChart.FullSeriesCollection(2).Name = "=Data!$D$1"
+    ActiveChart.FullSeriesCollection(2).Values = xValRange.Offset(0, 2) 'D
+    ActiveChart.FullSeriesCollection(3).Name = "=Data!$E$1"
+    ActiveChart.FullSeriesCollection(3).Values = xValRange.Offset(0, 3) 'E
+    ActiveChart.FullSeriesCollection(3).XValues = xValRange
+End Sub
+
+
 Sub Update_Val()
 
 Dim lngRowSource As Long, lngRowDestin As Long
